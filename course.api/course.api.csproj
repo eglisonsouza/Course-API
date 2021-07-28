@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <DocumentationFile>couse.api.XML</DocumentationFile>
+    <DocumentationFile>course.api.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
