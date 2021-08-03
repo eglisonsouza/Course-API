@@ -1,11 +1,14 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 
 namespace course.api
 {
@@ -30,6 +33,25 @@ namespace course.api
             services.AddSwaggerGen(c =>
             {
                 c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"));
+            });
+
+            var secret = Encoding.ASCII.GetBytes(Configuration.GetSection("JwtConfiguration:Secret").Value);
+            services.AddAuthentication(s =>
+            {
+                s.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                s.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(s =>
+            {
+                s.RequireHttpsMetadata = false;
+                s.SaveToken = true;
+                s.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(secret),
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                };
             });
         }
 
