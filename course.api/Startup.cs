@@ -22,7 +22,11 @@ namespace course.api
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddControllers();
+            services.AddControllers()
+            .ConfigureApiBehaviorOptions(options =>
+            {
+                options.SuppressModelStateInvalidFilter = true;
+            });
             services.AddSwaggerGen(c =>
             {
                 c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"));
@@ -47,7 +51,7 @@ namespace course.api
             {
                 endpoints.MapControllers();
             });
-            
+
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
