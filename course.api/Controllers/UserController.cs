@@ -1,10 +1,17 @@
+using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using course.api.Business.Entities;
+using course.api.Business.Repositories;
+using course.api.Configuration;
 using course.api.Filters;
+using course.api.Infra.Data;
 using course.api.Models;
 using course.api.Models.Users;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -15,6 +22,16 @@ namespace course.api.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
+
+        private readonly IUserRepository _userRepository;
+        private readonly IAuthenticationService _authenticationService;
+        public UserController(
+            IUserRepository userRepository,
+            IAuthenticationService authenticationService)
+        {
+            _userRepository = userRepository;
+            _authenticationService = authenticationService;
+        }
 
         /// <summary>
         /// Esse serviço permite autenticar um usuário cadastrado e ativo
@@ -38,27 +55,9 @@ namespace course.api.Controllers
             };
 
 
-            var secret = Encoding.ASCII.GetBytes("qmdkanciepfjsoqo34n2k34");
-            var symmetricSecurityKey = new SymmetricSecurityKey(secret);
-            var securityTokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
-                    new Claim(ClaimTypes.NameIdentifier, userViewModelOutput.Id.ToString()),
-                    new Claim(ClaimTypes.Name, userViewModelOutput.Name.ToString()),
-                    new Claim(ClaimTypes.Email, userViewModelOutput.Email.ToString())
-                }),
-                Expires = System.DateTime.UtcNow.AddDays(1),
-                SigningCredentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256Signature)
-            };
-
-            var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
-            var tokenGenerated = jwtSecurityTokenHandler.CreateToken(securityTokenDescriptor);
-            var token = jwtSecurityTokenHandler.WriteToken(tokenGenerated);
-
             return Ok(new
             {
-                token = token,
+                token = _authenticationService.GenerateToken(userViewModelOutput),
                 user = userViewModelOutput
             });
         }
@@ -66,9 +65,19 @@ namespace course.api.Controllers
         [HttpPost]
         [Route("register")]
         [ValidationModalStateCustomized]
+        [SwaggerResponse(statusCode: 201, description: "Sucesso ao criar o usuário")]
         public IActionResult Register(RegisterViewModelInput registerViewModelInput)
         {
-            return Created("", registerViewModelInput);
+
+            _userRepository.Add(new User()
+            {
+                Login = registerViewModelInput.Login,
+                Email = registerViewModelInput.Email,
+                Senha = registerViewModelInput.Password
+
+            });
+
+            return Created("Ok", registerViewModelInput);
         }
 
     }

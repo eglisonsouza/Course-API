@@ -14,6 +14,7 @@ namespace course.api.Infra.Data.Mappings
             builder.Property(p => p.Id).ValueGeneratedOnAdd();
             builder.Property(p => p.Name);
             builder.Property(p => p.Description);
+            builder.HasOne(p => p.User).WithMany().HasForeignKey(fk => fk.IdUser);
         }
     }
 }

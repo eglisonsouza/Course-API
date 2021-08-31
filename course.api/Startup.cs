@@ -2,9 +2,14 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using course.api.Business.Repositories;
+using course.api.Configuration;
+using course.api.Infra.Data;
+using course.api.Infra.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -76,6 +81,18 @@ namespace course.api
                     ValidateAudience = false
                 };
             });
+
+            services.AddDbContext<CourseDbContext>(options =>
+            {
+                options.UseMySql(
+                    connectionString: Configuration.GetConnectionString("DefaultConnection"),
+                    serverVersion: new MySqlServerVersion(new Version(10, 4, 19)));
+            });
+
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IAuthenticationService, JwtService>();
+
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
